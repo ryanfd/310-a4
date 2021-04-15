@@ -39,12 +39,41 @@ class MDP:
         V -- Value function: array of |S| entries
         iterId -- # of iterations performed: scalar
         epsilon -- ||V^n-V^n+1||_inf: scalar'''
+
+        states = self.nStates
+        actions = self.nActions
+        T = self.T
+        R = self.R
         
         # temporary values to ensure that the code compiles until this
         # function is coded
         V = np.zeros(self.nStates)
         iterId = 0
         epsilon = 0
+
+        while True:
+            v_temp = V
+            delta = 0
+
+            for s in range(0, states):
+                # update util values
+                print("here",T[0,1][1])
+                # V[s] = R[s] + tolerance * max([sum(p*v_temp[s_temp] for (p,s_temp) in T[s,a]) for a in range(actions)])
+
+                V[s] = R[s] + tolerance * max(sum([p*v_temp[s_temp] 
+                        for (p, s_temp) 
+                        in T[s, a]]) for a in range(actions))
+
+                # calculate max difference in value
+                delta = max(delta, abs(V[s] - v_temp[s]))
+                epsilon -= abs(pow(V[s], iterId+1))
+            # end of for in loop
+
+            if delta < epsilon*(1-tolerance)/tolerance:
+                return [V,iterId,epsilon]
+
+            iterId += 1
+        # end of for loop
         
         return [V,iterId,epsilon]
 
