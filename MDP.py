@@ -43,7 +43,7 @@ class MDP:
         epsilon -- ||V^n-V^n+1||_inf: scalar'''
         
         # set all of V = 0
-        V = np.zeros(len(initialV))
+        V = np.zeros(self.nStates)
         iterId = 0
         row_size = (len(self.T[0][0])-1)
 
@@ -114,13 +114,33 @@ class MDP:
         Output:
         policy -- Policy: array of |S| entries'''
 
-        # temporary values to ensure that the code compiles until this
-        # function is coded
         policy = np.zeros(self.nStates)
+        print("POLICY EXTRACTION")
+        print("------------------")
+        print("V:", V)
+        print("Policy:", policy)
+
+        for s in range(len(self.T)):
+            curr_policy = np.zeros(len(self.T))
+
+            curr_policy = self.R[s] + self.discount * np.dot(self.T[s][:][:], V)
+            print("Curr_Policy:", curr_policy)
+
+            # argmax policy
+            curr_policy = np.argmax(curr_policy)
+
+            policy[s] = curr_policy
+        # end of for loop
+
+        # policy = np.argmax(self.R + self.discount * np.dot(self.T, V), axis=0)
+        print("Policy:", policy)
 
         return policy 
     # end of Extract Policy
 
+    """
+    BASED ON CODE FROM: https://gist.github.com/shivamkalra/cd0726fd37bb7c9f5e1bfd8fe45b26f1
+    """
     def evaluatePolicy(self,policy):
         '''Evaluate a policy by solving a system of linear equations
         V^pi = R^pi + gamma T^pi V^pi
@@ -131,9 +151,16 @@ class MDP:
         Ouput:
         V -- Value function: array of |S| entries'''
 
-        # temporary values to ensure that the code compiles until this
-        # function is coded
+        print("\nEVALUATE POLICY")
+        print("----------------")
+        
         V = np.zeros(self.nStates)
+        Tpi = self.T[policy, np.arange(self.nStates), :]
+        Rpi = self.R[policy, np.arange(self.nStates)]
+        part_eval = np.identity(self.nStates) + self.discount * Tpi
+        V = np.linalg.solve(part_eval, Rpi)
+
+        print("V:", V)
 
         return V
         
