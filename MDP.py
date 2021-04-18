@@ -153,13 +153,23 @@ class MDP:
 
         print("\nEVALUATE POLICY")
         print("----------------")
+
+        policy_copy = policy.copy()
+        int_policy = policy_copy.astype(int) # convert policy_copy to ints for indexing
+
+        # out of bounds indexing issue
+        for i in range(len(int_policy)):
+            if int_policy[i] > 1:
+                int_policy[i] = 1
         
         V = np.zeros(self.nStates)
-        Tpi = self.T[policy, np.arange(self.nStates), :]
-        Rpi = self.R[policy, np.arange(self.nStates)]
-        part_eval = np.identity(self.nStates) + self.discount * Tpi
+        Tpi = self.T[int_policy, np.arange(self.nStates), :]
+        Rpi = self.R[int_policy, np.arange(self.nStates)]
+        part_eval = np.identity(self.nStates) - self.discount * Tpi
         V = np.linalg.solve(part_eval, Rpi)
 
+        print("T[pi]:\n", Tpi)
+        print("R[pi]:\n", Rpi)
         print("V:", V)
 
         return V
@@ -178,11 +188,27 @@ class MDP:
         V -- Value function: array of |S| entries
         iterId -- # of iterations peformed by modified policy iteration: scalar'''
 
-        # temporary values to ensure that the code compiles until this
-        # function is coded
-        policy = np.zeros(self.nStates)
-        V = np.zeros(self.nStates)
+        policy = initialPolicy
+        V = self.evaluatePolicy(policy)
         iterId = 0
+
+        print("POLICY ITERATION")
+        print("-----------------")
+
+        while iterId < nIterations:
+            print("\nStep", iterId)
+
+            new_policy = self.extractPolicy(V)
+            print("New Policy:", new_policy)
+
+            if (policy == new_policy).all():
+                break
+
+            V = self.evaluatePolicy(new_policy)
+            policy = new_policy
+
+            iterId += 1
+        # end of while loop
 
         return [policy,V,iterId]
             
