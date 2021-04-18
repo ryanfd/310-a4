@@ -48,7 +48,7 @@ class MDP:
         row_size = (len(self.T[0][0])-1)
 
         # converge on value
-        while True:
+        while iterId < nIterations:
             print("\nStep", iterId)
             print("--------------------------")
 
@@ -97,7 +97,7 @@ class MDP:
             # end of for loop
 
             iterId += 1
-            if epsilon < tolerance or iterId >= nIterations:
+            if epsilon < tolerance:
                 break
         # end of while loop
         
@@ -123,6 +123,7 @@ class MDP:
         for s in range(len(self.T)):
             curr_policy = np.zeros(len(self.T))
 
+            # np.dot() -> product of 2 arrays
             curr_policy = self.R[s] + self.discount * np.dot(self.T[s][:][:], V)
             print("Curr_Policy:", curr_policy)
 
@@ -201,7 +202,7 @@ class MDP:
             new_policy = self.extractPolicy(V)
             print("New Policy:", new_policy)
 
-            if (policy == new_policy).all():
+            if (policy == new_policy).all(): # if old and new policy are equal, exit while loop
                 break
 
             V = self.evaluatePolicy(new_policy)
@@ -227,11 +228,30 @@ class MDP:
         iterId -- # of iterations performed: scalar
         epsilon -- ||V^n-V^n+1||_inf: scalar'''
 
-        # temporary values to ensure that the code compiles until this
-        # function is coded
-        V = np.zeros(self.nStates)
+        V = initialV
+        Tpi = self.T[policy, np.arange(self.nStates), :]
+        Rpi = self.R[policy, np.arange(self.nStates)]
         iterId = 0
         epsilon = 0
+
+        print("\nPARTIAL POLICY EVALUATIONS")
+        print("---------------------------")
+        print("initialV:", initialV)
+
+        while iterId < nIterations:
+
+            new_V = Rpi + self.discount * np.dot(Tpi, V)
+            print("new_V:", new_V)
+            for i in range(len(new_V)):
+                epsilon = abs(V[i] - new_V[i])
+            print("epsilon:", epsilon)
+
+            V = new_V
+
+            iterId += 1
+            if epsilon < tolerance:
+                break
+        # end of for loop
 
         return [V,iterId,epsilon]
 
