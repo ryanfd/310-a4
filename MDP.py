@@ -205,7 +205,7 @@ class MDP:
                 break
 
             V = self.evaluatePolicy(new_policy)
-            policy = new_policy
+            policy = new_policy # compare new policies to previous ones
 
             iterId += 1
         # end of while loop
