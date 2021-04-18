@@ -100,9 +100,11 @@ class MDP:
             if epsilon < tolerance:
                 break
         # end of while loop
+
+        print("Value Iteration Result:", [V,iterId,epsilon])
         
         return [V,iterId,epsilon]
-    # end of ValueIteration()
+    # end of valueIteration()
 
     def extractPolicy(self,V):
         '''Procedure to extract a policy from a value function
@@ -136,8 +138,10 @@ class MDP:
         # policy = np.argmax(self.R + self.discount * np.dot(self.T, V), axis=0)
         print("Policy:", policy)
 
+        print("Extract Policy Result:", policy)
+
         return policy 
-    # end of Extract Policy
+    # end of extractPolicy()
 
     """
     BASED ON CODE FROM: https://gist.github.com/shivamkalra/cd0726fd37bb7c9f5e1bfd8fe45b26f1
@@ -173,7 +177,10 @@ class MDP:
         print("R[pi]:\n", Rpi)
         print("V:", V)
 
+        print("Evaluate Policy Result:", V)
+
         return V
+    # end of evaluatePolicy()
         
     def policyIteration(self,initialPolicy,nIterations=np.inf):
         '''Policy iteration procedure: alternate between policy
@@ -211,7 +218,10 @@ class MDP:
             iterId += 1
         # end of while loop
 
+        print("Policy Iteration Result:", [policy,V,iterId])
+
         return [policy,V,iterId]
+    # end of policyIteration()
             
     def evaluatePolicyPartially(self,policy,initialV,nIterations=np.inf,tolerance=0.01):
         '''Partial policy evaluation:
@@ -229,8 +239,16 @@ class MDP:
         epsilon -- ||V^n-V^n+1||_inf: scalar'''
 
         V = initialV
-        Tpi = self.T[policy, np.arange(self.nStates), :]
-        Rpi = self.R[policy, np.arange(self.nStates)]
+        policy_copy = policy.copy()
+        int_policy = policy_copy.astype(int) # convert policy_copy to ints for indexing
+
+        # out of bounds indexing issue
+        for i in range(len(int_policy)):
+            if int_policy[i] > 1:
+                int_policy[i] = 1
+
+        Tpi = self.T[int_policy, np.arange(self.nStates), :]
+        Rpi = self.R[int_policy, np.arange(self.nStates)]
         iterId = 0
         epsilon = 0
 
@@ -239,9 +257,13 @@ class MDP:
         print("initialV:", initialV)
 
         while iterId < nIterations:
+            print("TPI:",Tpi)
+            print("V:",V)
 
             new_V = Rpi + self.discount * np.dot(Tpi, V)
             print("new_V:", new_V)
+
+            # calculate epsilon
             for i in range(len(new_V)):
                 epsilon = abs(V[i] - new_V[i])
             print("epsilon:", epsilon)
@@ -251,9 +273,12 @@ class MDP:
             iterId += 1
             if epsilon < tolerance:
                 break
-        # end of for loop
+        # end of while loop
+
+        print("Partial Result:", [V,iterId,epsilon])
 
         return [V,iterId,epsilon]
+    # end of evaluatePolicyPartially()
 
     def modifiedPolicyIteration(self,initialPolicy,initialV,nEvalIterations=5,nIterations=np.inf,tolerance=0.01):
         '''Modified policy iteration procedure: alternate between
@@ -273,12 +298,35 @@ class MDP:
         iterId -- # of iterations peformed by modified policy iteration: scalar
         epsilon -- ||V^n-V^n+1||_inf: scalar'''
 
-        # temporary values to ensure that the code compiles until this
-        # function is coded
-        policy = np.zeros(self.nStates)
-        V = np.zeros(self.nStates)
+        policy = initialPolicy
+        V = initialV
         iterId = 0
         epsilon = 0
 
+        while iterId < nIterations:
+            temp_V = V
+            [V, _, _] = self.evaluatePolicyPartially(policy, temp_V, nEvalIterations) # partial eval
+            new_policy = self.extractPolicy(V) # policy improvement
+            [new_V, _, _] = self.valueIteration(V, 1)
+
+            print("V:", temp_V)
+            print("Policy:", new_policy)
+            print("new_V:", new_V)
+
+            for i in range(len(new_V)):
+                epsilon = abs(temp_V[i] - new_V[i])
+            print("new epsilon:", epsilon)
+
+            policy = new_policy
+            V = new_V
+
+            iterId += 1
+            if epsilon < tolerance:
+                break
+        # end of while loop
+
+        print("Modified Result:", [policy,V,iterId,epsilon])
+        
         return [policy,V,iterId,epsilon]
+    # end of modifiedPolicyIteration()
         
