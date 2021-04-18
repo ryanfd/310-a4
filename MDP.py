@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class MDP:
     '''A simple MDP class.  It includes the following members'''
@@ -25,6 +26,7 @@ class MDP:
         self.R = R
         assert 0 <= discount < 1, "Invalid discount factor: it should be in [0,1)"
         self.discount = discount
+
         
     def valueIteration(self,initialV,nIterations=np.inf,tolerance=0.01):
         '''Value iteration procedure
@@ -39,73 +41,66 @@ class MDP:
         V -- Value function: array of |S| entries
         iterId -- # of iterations performed: scalar
         epsilon -- ||V^n-V^n+1||_inf: scalar'''
-
-        actions = self.nActions
-        gamma = self.discount
         
-        # temporary values to ensure that the code compiles until this
-        # function is coded
-        V = np.zeros(self.nStates)
+        # set all of V = 0
+        V = np.zeros(len(initialV))
         iterId = 0
-        epsilon = tolerance
+        row_size = (len(self.T[0][0])-1)
 
-        print(self.T[0])
-        print(self.T[0][0])
-        print(self.T[0][0][0])
-
+        # converge on value
         while True:
-            old_v = V
-            for s in range(self.nStates):
-                print("V =",V)
-                # V[s] = self.R[s] + gamma * \
-                #     np.max(np.dot(self.T[s][:][:], V))
-                
-                # V[s] = self.R[s] + np.max(gamma * \
-                #     np.dot(self.T[s][:][:], \
-                #         V))
+            print("\nStep", iterId)
+            print("--------------------------")
 
-            # converging on goal
-            if np.max(np.abs(V - old_v)) <= epsilon:
-                break
+            v_temp = V.copy()
+            epsilon = 0
+            print(v_temp)
+
+            for (i, state) in enumerate(initialV):
+                if i == len(V)-1: # at end of V
+                    break
+                print("\tState:", i)
+
+                t = tuple()
+                for a in range(len(self.T)):
+                    print("\tAction:", a)
+
+                    print("\tp = [", end="")
+                    for j in range(len(self.T[a][i])):
+                        print(self.T[a][i][j], end=", ")
+                        if (j + 1) % row_size == 0:
+                            print("")
+                    print("]\n", end="\n")
+
+                    # find neighbouring state based on current state and action
+                    next_s = a+1
+                    # next_s = self.nextState(row_size, i, a)
+                    print("Next State:", next_s)
+
+                    # P(s'|s, a)
+                    p = self.T[a][i][next_s]
+
+                    # initial reward
+                    print("R[action][state] =", self.R[a][i])
+
+                    # bellman function
+                    w = p*(self.R[a][i] + self.discount * v_temp[next_s])
+                    t = list(t)
+                    t.append(w)
+                    t = tuple(t)
+                # end of for loop
+
+                V[i] = sum(t)
+                print("V =", V)
+
+                epsilon = max(epsilon, abs(V[i] - v_temp[i]))
+                print("Epsilon =", epsilon)
+            # end of for loop
 
             iterId += 1
+            if epsilon < tolerance or iterId >= nIterations:
+                break
         # end of while loop
-
-        # while True:
-        #     v_temp = V
-        #     delta = 0
-
-        #     for s in range(states):
-        #         # update util values
-        #         for a in range(len(T[s])):
-        #             print(T[s][a])
-        #             mylist = enumerate(T[a,s])
-        #             # print(list(mylist))
-
-        #         # V[s] = R[s] + tolerance * max(sum([p*v_temp[s_temp] 
-        #         #         for (p, s_temp) 
-        #         #         in T[s, actions]]))
-
-        #         # V[s] = R[s] + gamma * max(sum(p*v_temp[s_temp] for (s_temp, p) in enumerate(T[a, s])) 
-        #         # for a in range(len(T[s])))
-
-        #         # V[s] = R[s] + gamma * max([sum([p*v_temp[s_temp] for (p, s_temp) in enumerate(T[a,s])] for a in range(len(T[s])))])
-
-        #         # V1[s] = R(s) + gamma * max([ sum([p * V[s1] for (p, s1) in T(s, a)]) for a in actions(s)])
-
-        #         # V1[s] = R(s) + gamma * max([ sum([p * V[s1] for (p, s1) in T(s, a)]) for a in actions(s)])
-
-
-        #         # calculate max difference in value
-        #         delta = max(delta, abs(V[s] - v_temp[s]))
-        #         epsilon -= abs(pow(V[s], iterId+1))
-        #     # end of for in loop
-
-        #     if delta < epsilon*(1-tolerance)/tolerance:
-        #         return [V,iterId,epsilon]
-
-        #     iterId += 1
-        # # end of for loop
         
         return [V,iterId,epsilon]
 
@@ -122,17 +117,6 @@ class MDP:
         # temporary values to ensure that the code compiles until this
         # function is coded
         policy = np.zeros(self.nStates)
-        # V = np.zeros(self.nStates)
-        states = self.nStates
-        T = self.T
-        R = self.R
-        gamma = self.discount
-
-        for s in range(states):
-            pi[s] = R[s] + gamma * np.dot(T[s][:][:], V)
-        
-        policy = max(pi)
-        print("here",policy)
 
         return policy 
 
@@ -149,17 +133,6 @@ class MDP:
         # temporary values to ensure that the code compiles until this
         # function is coded
         V = np.zeros(self.nStates)
-        states = self.nStates
-        T = self.T
-        R = self.R
-        gamma = self.discount
-
-        # for p in policy:
-            # V[p] = R[p] + gamma * T[p] * V[p]
-            
-        # for s in range(states):
-        #     for p in policy:
-        #         V[p] = 
 
         return V
         
