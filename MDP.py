@@ -54,47 +54,46 @@ class MDP:
 
             v_temp = V.copy()
             epsilon = 0
-            print(v_temp)
+            print("V_Temp:", v_temp)
 
-            for (i, state) in enumerate(initialV):
-                if i == len(V)-1: # at end of V
+            for (s, state) in enumerate(initialV):
+                if s == len(V)-1: # at end of V
                     break
-                print("\tState:", i)
+                print("State:", s)
 
-                t = tuple()
                 for a in range(len(self.T)):
-                    print("\tAction:", a)
+                    print("Action:", a)
 
-                    print("\tp = [", end="")
-                    for j in range(len(self.T[a][i])):
-                        print(self.T[a][i][j], end=", ")
-                        if (j + 1) % row_size == 0:
-                            print("")
+                    print("p = [", end="")
+                    for i in range(len(self.T[a][s])):
+                        print("", self.T[a][s][i], end=" ")
+                        if (i + 1) % row_size == 0:
+                            print("", end="")
                     print("]\n", end="\n")
 
                     # find neighbouring state based on current state and action
                     next_s = a+1
-                    # next_s = self.nextState(row_size, i, a)
                     print("Next State:", next_s)
 
                     # P(s'|s, a)
-                    p = self.T[a][i][next_s]
+                    p = self.T[a][s][next_s]
 
                     # initial reward
-                    print("R[action][state] =", self.R[a][i])
+                    print("Immediate Reward =", self.R[a][s])
 
                     # bellman function
-                    w = p*(self.R[a][i] + self.discount * v_temp[next_s])
-                    t = list(t)
-                    t.append(w)
-                    t = tuple(t)
+                    w = p*(self.R[a][s] + self.discount * v_temp[next_s])
+                    sum_tuple = list()
+                    sum_tuple.append(w)
+                    sum_tuple = tuple(sum_tuple)
+                    print("sum_tuple:", sum_tuple)
                 # end of for loop
 
-                V[i] = sum(t)
+                V[s] = sum(sum_tuple)
                 print("V =", V)
 
-                epsilon = max(epsilon, abs(V[i] - v_temp[i]))
-                print("Epsilon =", epsilon)
+                epsilon = max(epsilon, abs(V[s] - v_temp[s]))
+                print("Epsilon =", epsilon, "\n")
             # end of for loop
 
             iterId += 1
@@ -103,6 +102,7 @@ class MDP:
         # end of while loop
         
         return [V,iterId,epsilon]
+    # end of ValueIteration()
 
     def extractPolicy(self,V):
         '''Procedure to extract a policy from a value function
@@ -119,6 +119,7 @@ class MDP:
         policy = np.zeros(self.nStates)
 
         return policy 
+    # end of Extract Policy
 
     def evaluatePolicy(self,policy):
         '''Evaluate a policy by solving a system of linear equations
