@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 class MDP:
     '''A simple MDP class.  It includes the following members'''
@@ -101,7 +100,7 @@ class MDP:
                 break
         # end of while loop
 
-        print("Value Iteration Result:", [V,iterId,epsilon])
+        # print("Value Iteration Result:", [V,iterId,epsilon])
         
         return [V,iterId,epsilon]
     # end of valueIteration()
@@ -218,7 +217,7 @@ class MDP:
             iterId += 1
         # end of while loop
 
-        print("Policy Iteration Result:", [policy,V,iterId])
+        # print("Policy Iteration Result:", [policy,V,iterId])
 
         return [policy,V,iterId]
     # end of policyIteration()
